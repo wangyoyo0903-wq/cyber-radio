@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>赛博电台 - 游戏语音智能播报解决方案</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #00f5ff;
+      --secondary-color: #ff00ff;
+      --accent-color: #ff6600;
+      --bg-color: #0a0a0f;
+      --surface-color: #12121a;
+      --card-color: #1a1a25;
+      --text-primary: #ffffff;
+      --text-secondary: #8888aa;
+      
+      --theme-gradient: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      --theme-glow: rgba(255, 107, 53, 0.3);
+      --theme-card-bg: rgba(255, 107, 53, 0.1);
+      --theme-bg-image: url('assets/skins/GTA-1774247337833.jpg');
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: 'Rajdhani', 'Microsoft YaHei', Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .dynamic-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+      transition: all 0.8s ease;
+    }
+
+    .dynamic-bg .bg-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      background-image: var(--theme-bg-image);
+      opacity: 0.25;
+      transition: all 0.8s ease;
+    }
+
+    .dynamic-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(10,10,15,0.6) 0%, rgba(10,10,15,0.85) 100%);
+      z-index: 1;
+    }
+
+    .dynamic-bg::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.6;
+      z-index: 2;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      animation: orbFloat 25s ease-in-out infinite;
+      transition: all 0.8s ease;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .bg-orb.primary {
+      width: 600px;
+      height: 600px;
+      top: 5%;
+      left: 0%;
+      background: var(--theme-glow);
+    }
+
+    .bg-orb.secondary {
+      width: 500px;
+      height: 500px;
+      bottom: 5%;
+      right: 5%;
+      animation-delay: -8s;
+      background: var(--theme-glow);
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(80px, -50px) scale(1.1); }
+      50% { transform: translate(-50px, 80px) scale(0.9); }
+      75% { transform: translate(50px, 50px) scale(1.05); }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 45px;
+      height: 45px;
+      background: var(--theme-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 25px var(--theme-glow);
+      transition: all 0.3s ease;
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      background: var(--theme-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .game-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .game-tab {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 25px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .game-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .game-tab.active {
+      background: var(--theme-gradient);
+      border-color: transparent;
+      color: #000;
+      box-shadow: 0 0 25px var(--theme-glow);
+    }
+
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 10px 25px;
+      background: var(--theme-card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 25px;
+      font-size: 13px;
+      color: var(--primary-color);
+      margin-bottom: 30px;
+      animation: badgePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 0 15px var(--theme-glow); }
+      50% { box-shadow: 0 0 35px var(--theme-glow); }
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 56px;
+      font-weight: 800;
+      margin-bottom: 25px;
+      line-height: 1.2;
+    }
+
+    .hero h1 .highlight {
+      background: var(--theme-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 20px;
+      color: var(--text-secondary);
+      max-width: 750px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-top: 50px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 42px;
+      font-weight: 700;
+      background: var(--theme-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .section {
+      padding: 80px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .architecture {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 24px;
+      padding: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 25px 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      min-width: 150px;
+      transition: all 0.3s ease;
+    }
+
+    .flow-node:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary-color);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .flow-node-icon {
+      width: 55px;
+      height: 55px;
+      background: var(--theme-gradient);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    .flow-node-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .flow-node-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .flow-arrow {
+      font-size: 28px;
+      color: var(--primary-color);
+      animation: arrowPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes arrowPulse {
+      0%, 100% { opacity: 0.4; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(8px); }
+    }
+
+    .scenario-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 45px;
+    }
+
+    .scenario-tab {
+      padding: 14px 35px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .scenario-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .scenario-tab.active {
+      background: var(--theme-gradient);
+      border-color: transparent;
+      color: #000;
+    }
+
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 25px;
+    }
+
+    .case-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .case-card.featured {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 30px var(--theme-glow);
+    }
+
+    .case-card.featured::before {
+      content: '⭐ 推荐';
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--theme-gradient);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .case-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--theme-gradient);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .case-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .case-card:hover::after {
+      opacity: 1;
+    }
+
+    .case-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+
+    .case-icon {
+      width: 55px;
+      height: 55px;
+      background: var(--theme-card-bg);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    .case-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .case-trigger {
+      font-size: 12px;
+      color: var(--primary-color);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .case-workflow {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .case-workflow-title {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .case-workflow-steps {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .workflow-step-tag {
+      padding: 5px 12px;
+      background: var(--theme-card-bg);
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      font-size: 11px;
+      color: var(--primary-color);
+    }
+
+    .workflow-step-arrow {
+      color: var(--primary-color);
+      font-size: 10px;
+    }
+
+    .case-data-sources {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .data-source-tag {
+      padding: 4px 10px;
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      border-radius: 12px;
+      font-size: 10px;
+      color: #a78bfa;
+    }
+
+    .case-content {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+      border-left: 3px solid var(--primary-color);
+    }
+
+    .case-content-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .case-content-text {
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    .case-play-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--theme-gradient);
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .case-play-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px var(--theme-glow);
+    }
+
+    .case-play-btn.playing {
+      background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    }
+
+    .player-demo {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .player-demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .player-demo-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .skin-switcher {
+      display: flex;
+      gap: 10px;
+    }
+
+    .skin-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .skin-btn:hover {
+      transform: scale(1.15);
+      border-color: #fff;
+    }
+
+    .skin-btn.active {
+      border-color: #fff;
+      box-shadow: 0 0 20px currentColor;
+    }
+
+    .radio-player {
+      background: rgba(26, 26, 37, 0.95);
+      border-radius: 24px;
+      padding: 30px;
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      box-shadow: 0 0 40px rgba(0, 245, 255, 0.15);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) 1;
+    }
+
+    .player-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-shadow: 0 0 15px var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .player-btn {
+      width: 42px;
+      height: 42px;
+      border: 2px solid var(--secondary-color);
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(0, 245, 255, 0.2));
+      color: var(--secondary-color);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.4);
+    }
+
+    .now-playing {
+      display: flex;
+      gap: 25px;
+      margin-bottom: 25px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 18px;
+      border: 1px solid rgba(0, 245, 255, 0.2);
+    }
+
+    .np-image {
+      width: 110px;
+      height: 110px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
+      flex-shrink: 0;
+    }
+
+    .np-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .np-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .np-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .np-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .np-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .np-tag {
+      padding: 5px 14px;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 255, 0.2));
+      border: 1px solid var(--primary-color);
+      border-radius: 15px;
+      font-size: 11px;
+      color: var(--primary-color);
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 14px;
+      border: 1px solid rgba(0, 245, 255, 0.2);
+    }
+
+    .ctrl-btn {
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 255, 0.2));
+      color: var(--primary-color);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(0, 245, 255, 0.4);
+    }
+
+    .ctrl-btn.play-btn {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+
+    .progress-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 200px;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 5px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(0, 245, 255, 0.2);
+    }
+
+    .progress-filled {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.1s ease;
+      position: relative;
+    }
+
+    .progress-filled::after {
+      content: '';
+      position: absolute;
+      right: -7px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--primary-color);
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--primary-color);
+      font-family: 'Courier New', monospace;
+    }
+
+    .visualizer {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 35px;
+    }
+
+    .visualizer-bar {
+      width: 5px;
+      height: 15px;
+      background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+      border-radius: 3px;
+      transition: height 0.1s ease;
+    }
+
+    .visualizer.active .visualizer-bar {
+      animation: visualizerPulse 0.5s ease-in-out infinite;
+    }
+
+    .visualizer.active .visualizer-bar:nth-child(1) { animation-delay: 0s; }
+    .visualizer.active .visualizer-bar:nth-child(2) { animation-delay: 0.1s; }
+    .visualizer.active .visualizer-bar:nth-child(3) { animation-delay: 0.2s; }
+    .visualizer.active .visualizer-bar:nth-child(4) { animation-delay: 0.3s; }
+    .visualizer.active .visualizer-bar:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes visualizerPulse {
+      0%, 100% { height: 15px; }
+      50% { height: 32px; }
+    }
+
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume-slider {
+      width: 90px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.6);
+      outline: none;
+      -webkit-appearance: none;
+      border: 1px solid rgba(0, 245, 255, 0.2);
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+      border: 2px solid var(--secondary-color);
+    }
+
+    .workflow-demo {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 24px;
+      padding: 45px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .workflow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 35px;
+    }
+
+    .workflow-step-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      min-width: 130px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .workflow-step-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary-color);
+    }
+
+    .workflow-step-card.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 25px var(--theme-glow);
+    }
+
+    .workflow-step-icon {
+      width: 45px;
+      height: 45px;
+      background: var(--theme-card-bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .workflow-step-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .workflow-arrow {
+      font-size: 22px;
+      color: var(--primary-color);
+    }
+
+    .workflow-detail {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .workflow-detail-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--primary-color);
+    }
+
+    .workflow-detail-content {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.9;
+    }
+
+    .workflow-detail-content ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .workflow-detail-content li {
+      padding: 10px 0;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .workflow-detail-content li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+    }
+
+    .cta-section {
+      text-align: center;
+      padding: 100px 0;
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02));
+    }
+
+    .cta-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+
+    .cta-desc {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 35px;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 45px;
+      background: var(--theme-gradient);
+      border: none;
+      border-radius: 35px;
+      color: #000;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px var(--theme-glow);
+    }
+
+    footer {
+      padding: 35px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1024px) {
+      .game-tabs {
+        overflow-x: auto;
+        padding-bottom: 10px;
+        justify-content: flex-start;
+      }
+      
+      .hero h1 { font-size: 40px; }
+      .hero-stats { gap: 35px; flex-wrap: wrap; }
+      .flow-diagram { gap: 15px; }
+      .flow-node { min-width: 120px; padding: 20px; }
+      .cases-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; gap: 15px; }
+      .hero { padding: 60px 0 50px; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .section { padding: 50px 0; }
+      .player-demo { padding: 25px; }
+      .now-playing { flex-direction: column; text-align: center; }
+      .np-image { margin: 0 auto; }
+      .player-controls { flex-wrap: wrap; gap: 12px; }
+      .progress-container { order: -1; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dynamic-bg" id="dynamic-bg">
+    <div class="bg-image" id="bg-image"></div>
+    <div class="bg-orb primary" id="bg-orb-primary"></div>
+    <div class="bg-orb secondary" id="bg-orb-secondary"></div>
+  </div>
+
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon" id="logo-icon">📻</div>
+          <span class="logo-text" id="logo-text">赛博电台</span>
+        </div>
+        <div class="game-tabs" id="game-tabs">
+          <button class="game-tab active" data-game="gta">🎮 GTA</button>
+          <button class="game-tab" data-game="valorant">🎯 Valorant</button>
+          <button class="game-tab" data-game="tft">♟️ 云顶之弈</button>
+          <button class="game-tab" data-game="peace">🔫 和平精英</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-badge" id="hero-badge">🎮 游戏语音智能播报解决方案</div>
+        <h1>为游戏注入<span class="highlight" id="hero-highlight">城市之声</span></h1>
+        <p id="hero-desc">TTS + 工作流编排，不只是文字转语音。实时数据接入、智能场景触发、个性化播报体验，让您的游戏更具沉浸感。</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">50+</div>
+            <div class="stat-label">播报场景</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">实时</div>
+            <div class="stat-label">数据接入</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">API</div>
+            <div class="stat-label">工作流编排</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">∞</div>
+            <div class="stat-label">播报组合</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">技术架构</h2>
+          <p class="section-subtitle">简单四步，实现智能语音播报</p>
+        </div>
+        <div class="architecture">
+          <div class="flow-diagram">
+            <div class="flow-node">
+              <div class="flow-node-icon">📊</div>
+              <div class="flow-node-label">数据源</div>
+              <div class="flow-node-desc">游戏事件、API、实时数据</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-icon">⚙️</div>
+              <div class="flow-node-label">工作流编排</div>
+              <div class="flow-node-desc">条件触发、内容生成、效果处理</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-icon">🎙️</div>
+              <div class="flow-node-label">TTS引擎</div>
+              <div class="flow-node-desc">多音色、情感化、音效融合</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-icon">🔊</div>
+              <div class="flow-node-label">音频输出</div>
+              <div class="flow-node-desc">游戏内播放、场景触发</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">场景案例</h2>
+          <p class="section-subtitle" id="scenario-subtitle">探索GTA中的智能播报场景</p>
+        </div>
+        <div class="scenario-tabs" id="scenario-tabs">
+          <button class="scenario-tab active" data-scenario="outside">🏠 局外场景</button>
+          <button class="scenario-tab" data-scenario="inside">🎮 局内场景</button>
+          <button class="scenario-tab" data-scenario="eco">🌐 游戏生态</button>
+        </div>
+        <div class="cases-grid" id="cases-grid"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">播放器演示</h2>
+          <p class="section-subtitle">体验真实的播放器效果，支持皮肤切换</p>
+        </div>
+        <div class="player-demo">
+          <div class="player-demo-header">
+            <h3 class="player-demo-title">🎧 实时演示</h3>
+            <div class="skin-switcher">
+              <button class="skin-btn active" style="background: linear-gradient(135deg, #00f5ff, #ff00ff);" data-skin="cyber" title="赛博朋克"></button>
+              <button class="skin-btn" style="background: linear-gradient(135deg, #ff6b35, #f7931e);" data-skin="gta" title="GTA风格"></button>
+              <button class="skin-btn" style="background: linear-gradient(135deg, #ff4655, #ff6b6b);" data-skin="valorant" title="Valorant"></button>
+              <button class="skin-btn" style="background: linear-gradient(135deg, #00ff41, #00cc33);" data-skin="nature" title="自然绿"></button>
+            </div>
+          </div>
+          <div class="radio-player" id="radio-player">
+            <div class="player-header">
+              <div class="player-title">📻 电台</div>
+              <div class="player-actions">
+                <button class="player-btn" title="收藏">❤️</button>
+                <button class="player-btn" title="历史">📜</button>
+              </div>
+            </div>
+            <div class="now-playing">
+              <div class="np-image">
+                <img id="np-img" src="assets/skins/GTA-1774247304166.jpg" alt="封面">
+              </div>
+              <div class="np-details">
+                <h3 class="np-title" id="np-title">选择一个节目开始收听</h3>
+                <p class="np-desc" id="np-desc">点击播放按钮开始收听演示音频</p>
+                <div class="np-tags">
+                  <span class="np-tag">演示</span>
+                  <span class="np-tag">智能播报</span>
+                </div>
+              </div>
+            </div>
+            <div class="player-controls">
+              <button class="ctrl-btn" id="btn-prev">⏮</button>
+              <button class="ctrl-btn play-btn" id="btn-play">▶</button>
+              <button class="ctrl-btn" id="btn-next">⏭</button>
+              <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                  <div class="progress-filled" id="progress-filled"></div>
+                </div>
+                <div class="time-display">
+                  <span id="time-current">0:00</span>
+                  <span id="time-total">0:00</span>
+                </div>
+              </div>
+              <div class="visualizer" id="visualizer">
+                <div class="visualizer-bar"></div>
+                <div class="visualizer-bar"></div>
+                <div class="visualizer-bar"></div>
+                <div class="visualizer-bar"></div>
+                <div class="visualizer-bar"></div>
+              </div>
+              <div class="volume-control">
+                <span>🔊</span>
+                <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">工作流编排</h2>
+          <p class="section-subtitle">可视化配置，轻松实现复杂播报逻辑</p>
+        </div>
+        <div class="workflow-demo">
+          <div class="workflow-diagram">
+            <div class="workflow-step-card active" data-step="trigger">
+              <div class="workflow-step-icon">🎯</div>
+              <div class="workflow-step-label">事件触发</div>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step-card" data-step="fetch">
+              <div class="workflow-step-icon">📡</div>
+              <div class="workflow-step-label">数据获取</div>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step-card" data-step="process">
+              <div class="workflow-step-icon">🔄</div>
+              <div class="workflow-step-label">内容处理</div>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step-card" data-step="tts">
+              <div class="workflow-step-icon">🎙️</div>
+              <div class="workflow-step-label">语音合成</div>
+            </div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step-card" data-step="output">
+              <div class="workflow-step-icon">🔊</div>
+              <div class="workflow-step-label">音频输出</div>
+            </div>
+          </div>
+          <div class="workflow-detail" id="workflow-detail">
+            <h4 class="workflow-detail-title">🎯 事件触发</h4>
+            <div class="workflow-detail-content">
+              <ul>
+                <li>游戏内事件：击杀、死亡、胜利、失败、升级等</li>
+                <li>时间触发：整点报时、活动倒计时、定时提醒</li>
+                <li>数据变化：排行榜更新、好友上线、礼物收到</li>
+                <li>用户行为：登录、充值、完成任务、成就达成</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <h2 class="cta-title">准备好为您的游戏注入灵魂了吗？</h2>
+        <p class="cta-desc">联系我们，获取专属的游戏语音播报解决方案</p>
+        <a href="#" class="cta-btn">
+          <span>立即咨询</span>
+          <span>→</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="footer-text">© 2024 赛博电台 - 游戏语音智能播报解决方案 | Cyber Radio</p>
+    </div>
+  </footer>
+
+  <audio id="demo-audio"></audio>
+
+  <script>
+    const gameThemes = {
+      gta: {
+        name: 'GTA',
+        bgImage: 'assets/skins/GTA-1774247337833.jpg',
+        gradient: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+        glow: 'rgba(255, 107, 53, 0.3)',
+        primary: '#ff6b35',
+        secondary: '#f7931e',
+        heroHighlight: '城市之声',
+        heroDesc: '从洛圣都的街头新闻到任务提示，让GTA的世界更加生动。实时获取游戏数据，智能播报任务进度、活动信息。',
+        scenarioSubtitle: '探索GTA中的智能播报场景',
+        cases: {
+          outside: [
+            { 
+              icon: '📰', 
+              title: '实时新闻播报', 
+              trigger: '定时触发 + API数据',
+              featured: true,
+              workflow: ['获取新闻API', '筛选最新', '生成播报', 'TTS合成'],
+              dataSources: ['新闻API', '游戏服务器'],
+              content: '各位听众好，现在是洛圣都时间下午3点。今日头条：市中心发生大规模交通堵塞，建议绕行；天气预报显示今晚有暴雨，请注意出行安全...', 
+              audio: 'gta_news' 
+            },
+            { 
+              icon: '🎯', 
+              title: '任务目标提示', 
+              trigger: '任务状态变化',
+              workflow: ['监听任务状态', '获取目标信息', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '新任务已解锁：抢劫佩立托银行。建议先完成前置任务：获取伪装服装、准备逃跑车辆。', 
+              audio: 'gta_mission' 
+            },
+            { 
+              icon: '🏪', 
+              title: '商店活动推送', 
+              trigger: '活动开始',
+              workflow: ['获取活动数据', '判断用户等级', '个性化生成'],
+              dataSources: ['活动API', '用户数据'],
+              content: '限时活动！武器店全场8折，仅限今日。您关注的"重型狙击步枪"已降价，原价$15,000，现价$12,000。', 
+              audio: 'gta_shop' 
+            }
+          ],
+          inside: [
+            { 
+              icon: '🚗', 
+              title: '车辆状态播报', 
+              trigger: '车辆进入/损坏',
+              featured: true,
+              workflow: ['获取车辆数据', '计算状态', '生成播报'],
+              dataSources: ['游戏服务器'],
+              content: '您的座驾"义塔利GTB"引擎受损严重，建议前往最近的洛圣都改装车行维修，距离您1.2公里。', 
+              audio: 'gta_vehicle' 
+            },
+            { 
+              icon: '💰', 
+              title: '收益播报', 
+              trigger: '任务完成',
+              workflow: ['计算收益', '对比历史', '生成播报'],
+              dataSources: ['游戏服务器', '用户数据'],
+              content: '任务完成！本次收益：现金$25,000，声望值+500。您本周累计收益已达$180,000，超越85%的玩家！', 
+              audio: 'gta_reward' 
+            },
+            { 
+              icon: '⚠️', 
+              title: '危险区域警告', 
+              trigger: '进入危险区',
+              workflow: ['检测位置', '查询区域数据', '生成警告'],
+              dataSources: ['地图API'],
+              content: '警告！您已进入敌对帮派领地。检测到附近有3名敌对玩家，建议保持警惕或快速撤离。', 
+              audio: 'gta_danger' 
+            }
+          ],
+          eco: [
+            { 
+              icon: '🏆', 
+              title: '排行榜播报', 
+              trigger: '排名变化',
+              featured: true,
+              workflow: ['获取排行榜', '对比变化', '生成播报'],
+              dataSources: ['排行榜API'],
+              content: '恭喜！您的财富排名已上升至全服第128名！距离前100名还差$2.5M，继续加油！', 
+              audio: 'gta_rank' 
+            },
+            { 
+              icon: '👥', 
+              title: '好友动态', 
+              trigger: '好友上线/活动',
+              workflow: ['监听好友状态', '筛选重要动态', '生成播报'],
+              dataSources: ['社交API'],
+              content: '您的好友"暗夜猎手"刚刚完成了抢劫任务，获得了$50,000收益。要邀请TA一起游戏吗？', 
+              audio: 'gta_friend' 
+            }
+          ]
+        }
+      },
+      valorant: {
+        name: 'Valorant',
+        bgImage: 'assets/skins/valorant-bg.jpg',
+        gradient: 'linear-gradient(135deg, #ff4655 0%, #ff6b6b 100%)',
+        glow: 'rgba(255, 70, 85, 0.3)',
+        primary: '#ff4655',
+        secondary: '#ff6b6b',
+        heroHighlight: '战术指挥',
+        heroDesc: '从回合战术到击杀播报，为Valorant带来专业级的电竞解说体验。实时分析战局，智能推荐战术。',
+        scenarioSubtitle: '探索Valorant中的智能播报场景',
+        cases: {
+          outside: [
+            { 
+              icon: '🎯', 
+              title: '战术推荐', 
+              trigger: '回合开始前',
+              featured: true,
+              workflow: ['分析双方阵容', '计算胜率', '生成战术'],
+              dataSources: ['游戏服务器', '历史数据'],
+              content: '对方选择了双狙击阵容，建议采用快速推进战术。A点进攻成功率较高，推荐闪光弹配合突进。', 
+              audio: 'val_tactic' 
+            },
+            { 
+              icon: '📊', 
+              title: '战绩分析', 
+              trigger: '比赛结束',
+              workflow: ['获取比赛数据', '分析表现', '生成报告'],
+              dataSources: ['游戏服务器'],
+              content: '本场比赛您的KDA为18/7/5，爆头率42%。最擅长角色：Jett，胜率68%。', 
+              audio: 'val_stats' 
+            },
+            { 
+              icon: '🎮', 
+              title: '排位提醒', 
+              trigger: '段位变化',
+              workflow: ['检测段位', '计算差距', '生成播报'],
+              dataSources: ['排位API'],
+              content: '距离晋升钻石段位还需2胜！当前隐藏分已达标，保持状态继续冲分！', 
+              audio: 'val_rank' 
+            }
+          ],
+          inside: [
+            { 
+              icon: '💥', 
+              title: '击杀播报', 
+              trigger: '击杀事件',
+              featured: true,
+              workflow: ['检测击杀', '判断类型', '生成播报'],
+              dataSources: ['游戏服务器'],
+              content: '三杀！您已连续击败3名敌人！还剩2人，注意搜点！', 
+              audio: 'val_kill' 
+            },
+            { 
+              icon: '💣', 
+              title: '技能提示', 
+              trigger: '技能冷却',
+              workflow: ['监听技能状态', '计算冷却', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '您的终极技能已就绪！现在是发动"暴风之眼"的最佳时机。', 
+              audio: 'val_skill' 
+            },
+            { 
+              icon: '⏰', 
+              title: '时间提醒', 
+              trigger: '回合倒计时',
+              workflow: ['监听时间', '判断阶段', '生成提醒'],
+              dataSources: ['游戏服务器'],
+              content: '还剩30秒！请尽快安装爆能器或寻找敌人。', 
+              audio: 'val_time' 
+            }
+          ],
+          eco: [
+            { 
+              icon: '🏆', 
+              title: '赛季奖励', 
+              trigger: '赛季结算',
+              featured: true,
+              workflow: ['获取赛季数据', '计算奖励', '生成播报'],
+              dataSources: ['赛季API'],
+              content: '赛季结束！您的最终段位为钻石III，获得专属枪械皮肤和玩家卡片奖励。', 
+              audio: 'val_season' 
+            },
+            { 
+              icon: '👥', 
+              title: '战队招募', 
+              trigger: '战队活动',
+              workflow: ['检测战队状态', '匹配玩家', '生成推荐'],
+              dataSources: ['社交API'],
+              content: '有一支钻石段位战队正在招募Jett主玩选手，胜率要求60%以上，您符合条件！', 
+              audio: 'val_team' 
+            }
+          ]
+        }
+      },
+      tft: {
+        name: '云顶之弈',
+        bgImage: 'assets/skins/tft-bg.jpg',
+        gradient: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+        glow: 'rgba(168, 85, 247, 0.3)',
+        primary: '#a855f7',
+        secondary: '#7c3aed',
+        heroHighlight: '策略大师',
+        heroDesc: '从阵容推荐到装备合成，为云顶之弈玩家提供专业的策略指导。实时分析场上局势，智能推荐最优解。',
+        scenarioSubtitle: '探索云顶之弈中的智能播报场景',
+        cases: {
+          outside: [
+            { 
+              icon: '📊', 
+              title: '阵容推荐', 
+              trigger: '游戏开始',
+              featured: true,
+              workflow: ['分析当前版本', '获取英雄池', '生成推荐'],
+              dataSources: ['版本数据API', '游戏服务器'],
+              content: '当前版本强势阵容推荐：6法4神盾。核心英雄：维克托、阿克尚。建议优先抢装备：蓝霸符、法爆。', 
+              audio: 'tft_comp' 
+            },
+            { 
+              icon: '📈', 
+              title: '经济分析', 
+              trigger: '回合结束',
+              workflow: ['计算经济', '分析利息', '生成建议'],
+              dataSources: ['游戏服务器'],
+              content: '当前金币52，建议存到50吃满利息。下回合可以升7级D牌，提高找到核心英雄的概率。', 
+              audio: 'tft_economy' 
+            },
+            { 
+              icon: '🎯', 
+              title: '装备推荐', 
+              trigger: '获得装备',
+              workflow: ['分析阵容', '匹配装备', '生成推荐'],
+              dataSources: ['游戏服务器'],
+              content: '获得了暴风大剑！建议合成无尽之刃给维克托，或者正义之手给阿克尚。', 
+              audio: 'tft_item' 
+            }
+          ],
+          inside: [
+            { 
+              icon: '🔍', 
+              title: '对手分析', 
+              trigger: '查看对手',
+              featured: true,
+              workflow: ['扫描对手阵容', '分析威胁', '生成报告'],
+              dataSources: ['游戏服务器'],
+              content: '对手1号正在玩6刺客阵容，威胁等级高。建议调整站位保护后排，可以考虑做守护天使。', 
+              audio: 'tft_opponent' 
+            },
+            { 
+              icon: '⚠️', 
+              title: '血量预警', 
+              trigger: '血量变化',
+              workflow: ['检测血量', '判断危险', '生成预警'],
+              dataSources: ['游戏服务器'],
+              content: '警告！您的血量已降至25点，建议尽快D牌提升阵容强度，或者考虑转阵容保分。', 
+              audio: 'tft_health' 
+            },
+            { 
+              icon: '⭐', 
+              title: '三星提示', 
+              trigger: '英雄数量变化',
+              workflow: ['统计英雄数量', '计算概率', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '您的维克托已有7张，还差3张三星！场上剩余约12张，D牌成功率约35%。', 
+              audio: 'tft_three' 
+            }
+          ],
+          eco: [
+            { 
+              icon: '🏆', 
+              title: '排名播报', 
+              trigger: '游戏结束',
+              featured: true,
+              workflow: ['获取排名', '计算积分', '生成播报'],
+              dataSources: ['游戏服务器', '排位API'],
+              content: '恭喜获得第2名！积分+45，当前段位钻石II，距离大师还需120积分。', 
+              audio: 'tft_rank' 
+            },
+            { 
+              icon: '📊', 
+              title: '数据统计', 
+              trigger: '查看战绩',
+              workflow: ['获取历史数据', '分析趋势', '生成报告'],
+              dataSources: ['战绩API'],
+              content: '近20场平均排名3.2，吃鸡率25%，前四率70%。最擅长阵容：6法4神盾，平均排名2.1。', 
+              audio: 'tft_stats' 
+            }
+          ]
+        }
+      },
+      peace: {
+        name: '和平精英',
+        bgImage: 'assets/skins/peace-elite-bg.jpg',
+        gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        glow: 'rgba(16, 185, 129, 0.3)',
+        primary: '#10b981',
+        secondary: '#059669',
+        heroHighlight: '战场指挥',
+        heroDesc: '从跳伞推荐到决赛圈指导，为和平精英玩家提供全方位的战场信息。实时分析安全区，智能推荐战术。',
+        scenarioSubtitle: '探索和平精英中的智能播报场景',
+        cases: {
+          outside: [
+            { 
+              icon: '🪂', 
+              title: '跳伞推荐', 
+              trigger: '游戏开始',
+              featured: true,
+              workflow: ['分析航线', '计算资源分布', '生成推荐'],
+              dataSources: ['地图API', '历史数据'],
+              content: '根据当前航线，推荐跳伞点：P城。预计落地人数8-12人，资源丰富度A级，适合刚枪。', 
+              audio: 'peace_jump' 
+            },
+            { 
+              icon: '🚗', 
+              title: '载具提示', 
+              trigger: '发现载具',
+              workflow: ['记录载具位置', '计算距离', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '发现吉普车！位置：P城东侧公路。距离您150米，建议优先获取以便转移。', 
+              audio: 'peace_vehicle' 
+            },
+            { 
+              icon: '📦', 
+              title: '空投预警', 
+              trigger: '空投投放',
+              workflow: ['检测空投位置', '分析威胁', '生成预警'],
+              dataSources: ['游戏服务器'],
+              content: '空投已投放！位置：学校北侧山坡。距离您400米，建议观察后再决定是否争夺。', 
+              audio: 'peace_airdrop' 
+            }
+          ],
+          inside: [
+            { 
+              icon: '🎯', 
+              title: '击杀播报', 
+              trigger: '击杀事件',
+              featured: true,
+              workflow: ['检测击杀', '统计数据', '生成播报'],
+              dataSources: ['游戏服务器'],
+              content: '击杀确认！您已淘汰5人。当前场上剩余32人，您的小队排名第3。', 
+              audio: 'peace_kill' 
+            },
+            { 
+              icon: '🌀', 
+              title: '安全区提示', 
+              trigger: '缩圈',
+              workflow: ['检测安全区', '计算距离', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '安全区正在缩小！下一安全区在您东北方向800米处。建议立即转移，剩余时间45秒。', 
+              audio: 'peace_zone' 
+            },
+            { 
+              icon: '⚠️', 
+              title: '敌人预警', 
+              trigger: '检测到敌人',
+              workflow: ['分析敌人位置', '判断威胁', '生成预警'],
+              dataSources: ['游戏服务器'],
+              content: '警告！检测到您的东南方向200米处有枪声，疑似2人小队交战。建议绕行或伏击。', 
+              audio: 'peace_enemy' 
+            }
+          ],
+          eco: [
+            { 
+              icon: '🏆', 
+              title: '结算播报', 
+              trigger: '游戏结束',
+              featured: true,
+              workflow: ['获取结算数据', '分析表现', '生成播报'],
+              dataSources: ['游戏服务器'],
+              content: '恭喜吃鸡！本局淘汰8人，伤害1280，生存时间28分钟。您的排名已上升至全服第256名！', 
+              audio: 'peace_win' 
+            },
+            { 
+              icon: '👥', 
+              title: '队友状态', 
+              trigger: '队友变化',
+              workflow: ['检测队友状态', '生成提示'],
+              dataSources: ['游戏服务器'],
+              content: '您的队友"狙击手"已被击倒！位置：您西北方向150米。是否前往救援？', 
+              audio: 'peace_team' 
+            }
+          ]
+        }
+      }
+    };
+
+    const workflowSteps = {
+      trigger: {
+        title: '🎯 事件触发',
+        content: `<ul>
+          <li>游戏内事件：击杀、死亡、胜利、失败、升级等</li>
+          <li>时间触发：整点报时、活动倒计时、定时提醒</li>
+          <li>数据变化：排行榜更新、好友上线、礼物收到</li>
+          <li>用户行为：登录、充值、完成任务、成就达成</li>
+        </ul>`
+      },
+      fetch: {
+        title: '📡 数据获取',
+        content: `<ul>
+          <li>游戏服务器API：玩家数据、游戏状态、排行榜</li>
+          <li>第三方数据源：天气、新闻、赛事信息</li>
+          <li>数据库查询：用户画像、历史记录、偏好设置</li>
+          <li>实时数据流：WebSocket、消息队列、事件总线</li>
+        </ul>`
+      },
+      process: {
+        title: '🔄 内容处理',
+        content: `<ul>
+          <li>模板渲染：根据数据填充播报模板</li>
+          <li>条件判断：根据场景选择不同播报内容</li>
+          <li>个性化处理：根据用户偏好调整语气、风格</li>
+          <li>多语言支持：自动翻译、本地化适配</li>
+        </ul>`
+      },
+      tts: {
+        title: '🎙️ 语音合成',
+        content: `<ul>
+          <li>多音色选择：男声、女声、童声、特色音色</li>
+          <li>情感化表达：开心、紧张、悲伤、兴奋等情绪</li>
+          <li>音效融合：背景音乐、环境音、特效音</li>
+          <li>语速控制：根据场景调整播报速度</li>
+        </ul>`
+      },
+      output: {
+        title: '🔊 音频输出',
+        content: `<ul>
+          <li>即时播放：事件触发后立即播放</li>
+          <li>队列播放：按顺序播放多个播报</li>
+          <li>优先级控制：重要播报优先、可打断</li>
+          <li>场景适配：根据游戏场景调整音量、混音</li>
+        </ul>`
+      }
+    };
+
+    let currentGame = 'gta';
+    let currentScenario = 'outside';
+    let currentSkin = 'cyber';
+    let isPlaying = false;
+    let currentAudioIndex = 0;
+
+    const demoAudio = document.getElementById('demo-audio');
+    const demoAudios = [
+      { title: '欢迎体验赛博电台', desc: '智能播报演示音频', duration: 15 },
+      { title: '游戏场景播报示例', desc: '多场景适配演示', duration: 12 },
+      { title: '工作流编排效果', desc: '实时数据处理演示', duration: 18 }
+    ];
+
+    function init() {
+      applyTheme(currentGame);
+      renderCases();
+      setupEventListeners();
+    }
+
+    function applyTheme(gameType) {
+      const theme = gameThemes[gameType];
+      const root = document.documentElement;
+      
+      root.style.setProperty('--theme-gradient', theme.gradient);
+      root.style.setProperty('--theme-glow', theme.glow);
+      root.style.setProperty('--primary-color', theme.primary);
+      root.style.setProperty('--secondary-color', theme.secondary);
+      root.style.setProperty('--theme-bg-image', `url('${theme.bgImage}')`);
+      
+      document.getElementById('hero-highlight').textContent = theme.heroHighlight;
+      document.getElementById('hero-desc').textContent = theme.heroDesc;
+      document.getElementById('scenario-subtitle').textContent = theme.scenarioSubtitle;
+      
+      const bgImage = document.getElementById('bg-image');
+      bgImage.style.backgroundImage = `url('${theme.bgImage}')`;
+      
+      const bgPrimary = document.getElementById('bg-orb-primary');
+      const bgSecondary = document.getElementById('bg-orb-secondary');
+      
+      bgPrimary.style.background = `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`;
+      bgSecondary.style.background = `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`;
+    }
+
+    function renderCases() {
+      const theme = gameThemes[currentGame];
+      const cases = theme.cases[currentScenario];
+      const container = document.getElementById('cases-grid');
+      
+      container.innerHTML = cases.map((c, i) => `
+        <div class="case-card ${c.featured ? 'featured' : ''}" data-index="${i}">
+          <div class="case-header">
+            <div class="case-icon">${c.icon}</div>
+            <div>
+              <div class="case-title">${c.title}</div>
+              <div class="case-trigger">🔗 ${c.trigger}</div>
+            </div>
+          </div>
+          <div class="case-workflow">
+            <div class="case-workflow-title">工作流编排</div>
+            <div class="case-workflow-steps">
+              ${c.workflow.map((step, idx) => `
+                <span class="workflow-step-tag">${step}</span>
+                ${idx < c.workflow.length - 1 ? '<span class="workflow-step-arrow">→</span>' : ''}
+              `).join('')}
+            </div>
+          </div>
+          <div class="case-data-sources">
+            ${c.dataSources.map(ds => `<span class="data-source-tag">📡 ${ds}</span>`).join('')}
+          </div>
+          <div class="case-content">
+            <div class="case-content-label">播报内容</div>
+            <div class="case-content-text">"${c.content}"</div>
+          </div>
+          <button class="case-play-btn" onclick="playCaseAudio('${c.audio}', this)">
+            <span>🔊</span>
+            <span>试听效果</span>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function playCaseAudio(audioId, btn) {
+      const allBtns = document.querySelectorAll('.case-play-btn');
+      allBtns.forEach(b => {
+        b.classList.remove('playing');
+        b.innerHTML = '<span>🔊</span><span>试听效果</span>';
+      });
+      
+      btn.classList.add('playing');
+      btn.innerHTML = '<span>⏸</span><span>播放中...</span>';
+      
+      setTimeout(() => {
+        btn.classList.remove('playing');
+        btn.innerHTML = '<span>🔊</span><span>试听效果</span>';
+      }, 2000);
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll('.game-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentGame = tab.dataset.game;
+          applyTheme(currentGame);
+          renderCases();
+        });
+      });
+
+      document.querySelectorAll('.scenario-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentScenario = tab.dataset.scenario;
+          renderCases();
+        });
+      });
+
+      document.querySelectorAll('.skin-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentSkin = btn.dataset.skin;
+          applyPlayerSkin(currentSkin);
+        });
+      });
+
+      document.querySelectorAll('.workflow-step-card').forEach(step => {
+        step.addEventListener('click', () => {
+          document.querySelectorAll('.workflow-step-card').forEach(s => s.classList.remove('active'));
+          step.classList.add('active');
+          updateWorkflowDetail(step.dataset.step);
+        });
+      });
+
+      document.getElementById('btn-play').addEventListener('click', togglePlay);
+      document.getElementById('btn-prev').addEventListener('click', prevAudio);
+      document.getElementById('btn-next').addEventListener('click', nextAudio);
+      document.getElementById('progress-bar').addEventListener('click', seekAudio);
+      document.getElementById('volume-slider').addEventListener('input', changeVolume);
+
+      demoAudio.addEventListener('timeupdate', updateProgress);
+      demoAudio.addEventListener('ended', onAudioEnded);
+      demoAudio.addEventListener('play', () => {
+        isPlaying = true;
+        document.getElementById('btn-play').textContent = '⏸';
+        document.getElementById('visualizer').classList.add('active');
+      });
+      demoAudio.addEventListener('pause', () => {
+        isPlaying = false;
+        document.getElementById('btn-play').textContent = '▶';
+        document.getElementById('visualizer').classList.remove('active');
+      });
+    }
+
+    function applyPlayerSkin(skin) {
+      const skins = {
+        cyber: { primary: '#00f5ff', secondary: '#ff00ff' },
+        gta: { primary: '#ff6b35', secondary: '#f7931e' },
+        valorant: { primary: '#ff4655', secondary: '#ff6b6b' },
+        nature: { primary: '#00ff41', secondary: '#00cc33' }
+      };
+      
+      const s = skins[skin];
+      document.querySelector('.radio-player').style.borderColor = s.primary + '4D';
+      document.querySelector('.player-title').style.color = s.primary;
+      document.querySelector('.player-title').style.textShadow = `0 0 15px ${s.primary}`;
+      document.querySelectorAll('.ctrl-btn').forEach(btn => {
+        btn.style.borderColor = s.primary;
+        btn.style.color = s.primary;
+      });
+      document.querySelectorAll('.np-tag').forEach(tag => {
+        tag.style.borderColor = s.primary;
+        tag.style.color = s.primary;
+      });
+    }
+
+    function updateWorkflowDetail(step) {
+      const detail = workflowSteps[step];
+      document.getElementById('workflow-detail').innerHTML = `
+        <h4 class="workflow-detail-title">${detail.title}</h4>
+        <div class="workflow-detail-content">${detail.content}</div>
+      `;
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        demoAudio.pause();
+      } else {
+        if (!demoAudio.src) {
+          loadDemoAudio(0);
+        }
+        demoAudio.play();
+      }
+    }
+
+    function loadDemoAudio(index) {
+      currentAudioIndex = index;
+      const audio = demoAudios[index];
+      document.getElementById('np-title').textContent = audio.title;
+      document.getElementById('np-desc').textContent = audio.desc;
+      document.getElementById('time-total').textContent = formatTime(audio.duration);
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 100;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 100, 100);
+      gradient.addColorStop(0, gameThemes[currentGame].primary);
+      gradient.addColorStop(1, gameThemes[currentGame].secondary);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 100, 100);
+      ctx.fillStyle = '#fff';
+      ctx.font = '40px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(audio.title.charAt(0), 50, 50);
+      document.getElementById('np-img').src = canvas.toDataURL();
+    }
+
+    function prevAudio() {
+      if (currentAudioIndex > 0) {
+        loadDemoAudio(currentAudioIndex - 1);
+        if (isPlaying) demoAudio.play();
+      }
+    }
+
+    function nextAudio() {
+      if (currentAudioIndex < demoAudios.length - 1) {
+        loadDemoAudio(currentAudioIndex + 1);
+        if (isPlaying) demoAudio.play();
+      }
+    }
+
+    function seekAudio(e) {
+      const rect = e.target.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      if (demoAudio.duration) {
+        demoAudio.currentTime = percent * demoAudio.duration;
+      }
+    }
+
+    function changeVolume(e) {
+      demoAudio.volume = e.target.value / 100;
+    }
+
+    function updateProgress() {
+      const progress = (demoAudio.currentTime / demoAudio.duration) * 100 || 0;
+      document.getElementById('progress-filled').style.width = progress + '%';
+      document.getElementById('time-current').textContent = formatTime(demoAudio.currentTime);
+    }
+
+    function onAudioEnded() {
+      if (currentAudioIndex < demoAudios.length - 1) {
+        loadDemoAudio(currentAudioIndex + 1);
+        demoAudio.play();
+      } else {
+        isPlaying = false;
+        document.getElementById('btn-play').textContent = '▶';
+        document.getElementById('visualizer').classList.remove('active');
+      }
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    init();
+  </script>
+</body>
+</html>
